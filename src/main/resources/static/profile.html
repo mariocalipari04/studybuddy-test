@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilo - AI Study Buddy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        /* Fix sidebar scroll */
+        .sidebar {
+            overflow-y: auto;
+        }
+
+        .profile-header {
+            background: var(--gradient-primary);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            position: relative;
+            overflow: hidden;
+        }
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            font-weight: 700;
+            flex-shrink: 0;
+            border: 4px solid rgba(255,255,255,0.3);
+            position: relative;
+        }
+        .level-badge-large {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border: 3px solid #ffffff;
+        }
+        .profile-info { flex: 1; min-width: 200px; }
+        .profile-name { font-size: 1.75rem; font-weight: 700; color: #ffffff; margin-bottom: 0.25rem; }
+        .profile-email { color: rgba(255,255,255,0.8); margin-bottom: 0.75rem; }
+        .profile-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.9rem; color: rgba(255,255,255,0.9); }
+        .profile-meta i { margin-right: 0.4rem; }
+        .profile-xp { text-align: center; padding: 1rem 2rem; background: rgba(255,255,255,0.15); border-radius: 1rem; }
+        .profile-xp-value { font-size: 2.5rem; font-weight: 700; color: #ffffff; line-height: 1; }
+        .profile-xp-label { color: rgba(255,255,255,0.8); font-size: 0.85rem; }
+
+        .xp-progress-card {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .xp-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        .xp-level { font-weight: 700; color: var(--primary-color); }
+        .xp-values { color: var(--text-muted); font-size: 0.875rem; }
+        .xp-bar { height: 12px; background: var(--dark-border); border-radius: 6px; overflow: hidden; }
+        .xp-fill { height: 100%; background: var(--gradient-primary); border-radius: 6px; transition: width 1s ease; }
+        .xp-remaining { text-align: center; margin-top: 0.75rem; color: var(--text-muted); font-size: 0.85rem; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card-profile {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .stat-card-profile:hover { border-color: var(--primary-color); transform: translateY(-4px); }
+        .stat-card-profile .stat-icon {
+            width: 50px; height: 50px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; margin: 0 auto 0.75rem; color: #ffffff;
+        }
+        .stat-card-profile .stat-icon.purple { background: var(--primary-color); }
+        .stat-card-profile .stat-icon.red { background: #dc2626; }
+        .stat-card-profile .stat-icon.blue { background: #3b82f6; }
+        .stat-card-profile .stat-icon.green { background: #16a34a; }
+        .stat-card-profile .stat-icon.yellow { background: #ca8a04; }
+        .stat-card-profile .stat-icon.pink { background: #db2777; }
+        .stat-card-profile .stat-value { font-size: 1.75rem; font-weight: 700; color: #ffffff; line-height: 1; }
+        .stat-card-profile .stat-label { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem; }
+
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem; }
+        .section-title { font-size: 1.15rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.5rem; }
+        .section-title i { color: var(--primary-color); }
+        .section-subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+        /* Settings Card */
+        .settings-card {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .settings-card .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .settings-card .settings-info {
+            flex: 1;
+            min-width: 200px;
+        }
+        .settings-card .settings-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .settings-card .settings-info p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+        .settings-card .settings-control {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .language-select-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--dark-bg);
+            border: 1px solid var(--dark-border);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+        }
+        .language-select-wrapper .flag {
+            font-size: 1.5rem;
+        }
+        .language-select-wrapper select {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 0.9rem;
+            padding-right: 1.5rem;
+            cursor: pointer;
+        }
+        .language-select-wrapper select:focus {
+            outline: none;
+        }
+        .settings-message {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+        .settings-message.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .settings-message.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Recommendations */
+        .recommendations-card {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 1rem;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .recommendations-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--dark-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .recommendations-body {
+            padding: 1rem 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .recommendation-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--dark-border);
+            transition: all 0.2s ease;
+        }
+        .recommendation-item:last-child { border-bottom: none; }
+        .recommendation-item:hover { padding-left: 0.5rem; }
+        .recommendation-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        .recommendation-icon.streak { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .recommendation-icon.weakness { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .recommendation-icon.review { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .recommendation-icon.quiz { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        .recommendation-icon.flashcard { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .recommendation-icon.goal { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .recommendation-icon.new { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
+        .recommendation-info { flex: 1; min-width: 0; }
+        .recommendation-title {
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .recommendation-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .recommendation-dismiss {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.15);
+            border: none;
+            color: #34d399;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .recommendation-dismiss:hover {
+            background: #10b981;
+            color: #ffffff;
+        }
+        .empty-recommendations {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+        .empty-recommendations i {
+            font-size: 2.5rem;
+            opacity: 0.4;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        /* Badges */
+        .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+        .badge-card {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .badge-card:hover { transform: translateY(-4px); border-color: var(--primary-color); }
+        .badge-card.unlocked { border-color: #10b981; }
+        .badge-card.unlocked::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            border-radius: 1rem 1rem 0 0;
+        }
+        .badge-card.locked { opacity: 0.5; }
+        .badge-icon-container {
+            width: 60px; height: 60px; border-radius: 50%;
+            margin: 0 auto 0.75rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: #ffffff;
+        }
+        .badge-name { font-weight: 700; font-size: 0.85rem; color: #ffffff; margin-bottom: 0.25rem; }
+        .badge-description { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.5rem; line-height: 1.4; }
+        .badge-progress { margin-top: 0.5rem; }
+        .badge-progress-bar { height: 4px; background: var(--dark-border); border-radius: 2px; overflow: hidden; }
+        .badge-progress-fill { height: 100%; background: var(--primary-color); border-radius: 2px; }
+        .badge-progress-text { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+        .streak-fire { animation: fire-flicker 0.5s ease infinite alternate; }
+        @keyframes fire-flicker { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* Fix scroll */
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        .main-content {
+            min-height: 100vh;
+            padding-bottom: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .profile-header { flex-direction: column; text-align: center; }
+            .profile-meta { justify-content: center; }
+            .profile-xp { width: 100%; }
+            .badges-grid { grid-template-columns: repeat(2, 1fr); }
+            .settings-card .settings-row { flex-direction: column; align-items: stretch; }
+            .settings-card .settings-control { justify-content: stretch; }
+            .settings-card .settings-control .btn { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+<main class="main-content">
+    <div id="alertContainer"></div>
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="avatar-large" id="profileAvatar">
+            <span id="profileInitials">...</span>
+            <div class="level-badge-large" id="levelBadge">1</div>
+        </div>
+        <div class="profile-info">
+            <h1 class="profile-name" id="profileName">...</h1>
+            <p class="profile-email" id="profileEmail">...</p>
+            <div class="profile-meta">
+                <span><i class="bi bi-calendar3"></i> Membro da <span id="memberSince">-</span></span>
+                <span><i class="bi bi-fire streak-fire"></i> Streak: <strong id="currentStreak">0</strong> giorni</span>
+            </div>
+        </div>
+        <div class="profile-xp">
+            <div class="profile-xp-value" id="totalXp">0</div>
+            <div class="profile-xp-label">XP Totali</div>
+        </div>
+    </div>
+
+    <!-- XP Progress -->
+    <div class="xp-progress-card">
+        <div class="xp-progress-header">
+            <span class="xp-level"><i class="bi bi-star-fill"></i> Livello <span id="currentLevel">1</span></span>
+            <span class="xp-values"><span id="currentXpInLevel">0</span> / <span id="xpForNextLevel">100</span> XP</span>
+        </div>
+        <div class="xp-bar">
+            <div class="xp-fill" id="xpProgressBar" style="width: 0%"></div>
+        </div>
+        <div class="xp-remaining">
+            <i class="bi bi-lightning-charge"></i> <span id="xpToNextLevel">100</span> XP per il prossimo livello
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card-profile">
+            <div class="stat-icon purple"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div class="stat-value" id="weeklyXp">0</div>
+            <div class="stat-label">XP Settimana</div>
+        </div>
+        <div class="stat-card-profile">
+            <div class="stat-icon red"><i class="bi bi-fire"></i></div>
+            <div class="stat-value" id="longestStreak">0</div>
+            <div class="stat-label">Streak Record</div>
+        </div>
+        <div class="stat-card-profile">
+            <div class="stat-icon blue"><i class="bi bi-lightbulb-fill"></i></div>
+            <div class="stat-value" id="explanationsCount">0</div>
+            <div class="stat-label">Spiegazioni</div>
+        </div>
+        <div class="stat-card-profile">
+            <div class="stat-icon green"><i class="bi bi-patch-check-fill"></i></div>
+            <div class="stat-value" id="quizzesCompleted">0</div>
+            <div class="stat-label">Quiz</div>
+        </div>
+        <div class="stat-card-profile">
+            <div class="stat-icon yellow"><i class="bi bi-stack"></i></div>
+            <div class="stat-value" id="flashcardsStudied">0</div>
+            <div class="stat-label">Flashcards</div>
+        </div>
+        <div class="stat-card-profile">
+            <div class="stat-icon pink"><i class="bi bi-clock-fill"></i></div>
+            <div class="stat-value" id="studyHours">0</div>
+            <div class="stat-label">Ore Studio</div>
+        </div>
+    </div>
+
+    <!-- Language Settings -->
+    <div class="settings-card">
+        <div class="settings-row">
+            <div class="settings-info">
+                <h3><i class="bi bi-translate"></i> Lingua Preferita</h3>
+                <p>Scegli la lingua per spiegazioni, quiz e flashcards generati dall'AI</p>
+            </div>
+            <div class="settings-control">
+                <div class="language-select-wrapper">
+                    <span class="flag" id="currentLanguageFlag">🇮🇹</span>
+                    <select id="languageSelect">
+                        <option value="it">Italiano</option>
+                        <option value="en">English</option>
+                        <option value="es">Espanol</option>
+                        <option value="fr">Francais</option>
+                        <option value="de">Deutsch</option>
+                        <option value="pt">Portugues</option>
+                        <option value="ru">Russkij</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="saveLanguage()" id="saveLanguageBtn">
+                    <i class="bi bi-check-lg"></i> Salva
+                </button>
+            </div>
+        </div>
+        <div class="settings-message" id="languageMessage"></div>
+    </div>
+
+    <!-- Recommendations Section -->
+    <div class="recommendations-card">
+        <div class="recommendations-header">
+            <div>
+                <div class="section-title" style="margin-bottom: 0;"><i class="bi bi-lightbulb"></i> Raccomandazioni</div>
+                <small style="color: var(--text-muted);">Suggerimenti personalizzati</small>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="refreshRecommendations(this)">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+        </div>
+        <div class="recommendations-body" id="recommendationsContainer">
+            <div class="empty-recommendations">
+                <i class="bi bi-hourglass-split"></i>
+                <p>Caricamento...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Badges Section -->
+    <div class="section-header">
+        <div>
+            <div class="section-title"><i class="bi bi-award"></i> Badge e Traguardi</div>
+            <p class="section-subtitle"><span id="unlockedCount">0</span> sbloccati su <span id="totalCount">0</span></p>
+        </div>
+    </div>
+    <div class="badges-grid" id="badgesContainer"></div>
+</main>
+
+<script src="js/app.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/focus-manager.js"></script>
+<script>
+    let allBadges = [];
+    const languageFlags = { 'it': '🇮🇹', 'en': '🇺🇸', 'es': '🇪🇸', 'fr': '🇫🇷', 'de': '🇩🇪', 'pt': '🇵🇹', 'ru': '🇷🇺' };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initLayout({
+            pageTitle: '',
+            activePage: 'profile',
+            showTopbar: false
+        });
+
+        loadProfile();
+        loadStats();
+        loadBadges();
+        loadCurrentLanguage();
+
+        // Genera e carica raccomandazioni automaticamente
+        generateAndLoadRecommendations();
+    });
+
+    // ==================== PROFILE ====================
+    async function loadProfile() {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (user && (user.firstName || user.lastName || user.email)) {
+            const fullName = getUserDisplayName(user);
+            const initials = getUserInitials(user);
+
+            document.getElementById('profileName').textContent = fullName;
+            document.getElementById('profileEmail').textContent = user.email || '';
+            document.getElementById('profileInitials').textContent = initials;
+        } else {
+            document.getElementById('profileName').textContent = 'Utente';
+            document.getElementById('profileEmail').textContent = '';
+            document.getElementById('profileInitials').textContent = 'U';
+        }
+
+        // Carica data registrazione dal backend
+        try {
+            const response = await apiFetch('/auth/me');
+            if (response.ok) {
+                const userData = await response.json();
+                if (userData.createdAt) {
+                    const date = new Date(userData.createdAt);
+                    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                    document.getElementById('memberSince').textContent = date.toLocaleDateString('it-IT', options);
+                } else {
+                    document.getElementById('memberSince').textContent = '-';
+                }
+            }
+        } catch (error) {
+            console.log('Impossibile caricare data registrazione');
+            document.getElementById('memberSince').textContent = '-';
+        }
+    }
+
+    // ==================== STATS ====================
+    async function loadStats() {
+        try {
+            const response = await apiFetch('/gamification/stats');
+            if (response.ok) {
+                const stats = await response.json();
+
+                document.getElementById('totalXp').textContent = (stats.totalXp || 0).toLocaleString();
+                document.getElementById('weeklyXp').textContent = (stats.weeklyXp || 0).toLocaleString();
+                document.getElementById('currentLevel').textContent = stats.level || 1;
+                document.getElementById('levelBadge').textContent = stats.level || 1;
+
+                const xpInLevel = stats.xpInCurrentLevel || 0;
+                const xpNeeded = stats.xpForNextLevel || 100;
+                const progress = Math.min((xpInLevel / xpNeeded) * 100, 100);
+
+                document.getElementById('xpProgressBar').style.width = `${progress}%`;
+                document.getElementById('currentXpInLevel').textContent = xpInLevel;
+                document.getElementById('xpForNextLevel').textContent = xpNeeded;
+                document.getElementById('xpToNextLevel').textContent = Math.max(0, xpNeeded - xpInLevel);
+
+                document.getElementById('currentStreak').textContent = stats.currentStreak || 0;
+                document.getElementById('longestStreak').textContent = stats.longestStreak || 0;
+                document.getElementById('explanationsCount').textContent = stats.explanationsRequested || 0;
+                document.getElementById('quizzesCompleted').textContent = stats.quizzesCompleted || 0;
+                document.getElementById('flashcardsStudied').textContent = stats.flashcardsStudied || 0;
+
+                const hours = Math.floor((stats.totalStudyTimeMinutes || 0) / 60);
+                document.getElementById('studyHours').textContent = hours;
+            }
+        } catch (error) {
+            console.error('Errore caricamento statistiche:', error);
+        }
+    }
+
+    // ==================== LANGUAGE ====================
+    function loadCurrentLanguage() {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const currentLang = user.preferredLanguage || 'it';
+
+        const selectEl = document.getElementById('languageSelect');
+        if (selectEl) {
+            selectEl.value = currentLang;
+            updateLanguageFlag(currentLang);
+
+            selectEl.addEventListener('change', function() {
+                updateLanguageFlag(this.value);
+            });
+        }
+    }
+
+    function updateLanguageFlag(lang) {
+        const flagEl = document.getElementById('currentLanguageFlag');
+        if (flagEl) flagEl.textContent = languageFlags[lang] || '🌐';
+    }
+
+    async function saveLanguage() {
+        const selectEl = document.getElementById('languageSelect');
+        const newLanguage = selectEl.value;
+        const btn = document.getElementById('saveLanguageBtn');
+
+        if (!newLanguage) {
+            showLanguageMessage('Seleziona una lingua', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner" style="width:14px;height:14px;"></span>';
+
+        try {
+            const response = await apiFetch('/auth/update-language', {
+                method: 'PUT',
+                body: JSON.stringify({ preferredLanguage: newLanguage })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                const langName = selectEl.options[selectEl.selectedIndex].text;
+                showLanguageMessage(`Lingua aggiornata: ${langName}`, 'success');
+
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                user.preferredLanguage = newLanguage;
+                localStorage.setItem('user', JSON.stringify(user));
+            } else {
+                showLanguageMessage(data.message || 'Errore nel salvataggio', 'error');
+            }
+        } catch (error) {
+            console.error('Errore salvataggio lingua:', error);
+            showLanguageMessage('Errore di connessione', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Salva';
+        }
+    }
+
+    function showLanguageMessage(message, type) {
+        const messageEl = document.getElementById('languageMessage');
+        if (!messageEl) return;
+        messageEl.className = `settings-message ${type}`;
+        messageEl.textContent = message;
+        messageEl.style.display = 'block';
+        setTimeout(() => messageEl.style.display = 'none', 4000);
+    }
+
+    // ==================== RECOMMENDATIONS ====================
+    async function generateAndLoadRecommendations() {
+        try {
+            // Prima genera nuove raccomandazioni
+            await apiFetch('/recommendations/generate', { method: 'POST' });
+        } catch (e) {
+            console.log('Generazione raccomandazioni fallita, carico esistenti');
+        }
+        // Poi carica tutte le attive
+        await loadRecommendations();
+    }
+
+    async function loadRecommendations() {
+        try {
+            const response = await apiFetch('/recommendations');
+            if (response.ok) {
+                const recs = await response.json();
+                renderRecommendations(recs);
+            }
+        } catch (error) {
+            renderRecommendations([]);
+        }
+    }
+
+    async function refreshRecommendations(btn) {
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner" style="width:14px;height:14px;"></span>';
+        }
+
+        await generateAndLoadRecommendations();
+
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
+        }
+    }
+
+    function renderRecommendations(recommendations) {
+        const container = document.getElementById('recommendationsContainer');
+
+        if (!recommendations || recommendations.length === 0) {
+            container.innerHTML = `
+                <div class="empty-recommendations">
+                    <i class="bi bi-check-circle"></i>
+                    <p><strong>Ottimo lavoro!</strong></p>
+                    <small>Nessuna raccomandazione attiva</small>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = recommendations.map(rec => `
+            <div class="recommendation-item" id="rec-${rec.id}">
+                <div class="recommendation-icon ${getRecIconClass(rec.type)}">
+                    <i class="bi ${getRecIcon(rec.type)}"></i>
+                </div>
+                <div class="recommendation-info">
+                    <div class="recommendation-title">${escapeHtml(rec.title)}</div>
+                    <div class="recommendation-desc">${escapeHtml(rec.description)}</div>
+                </div>
+                <button class="recommendation-dismiss" onclick="dismissRecommendation('${rec.id}')" title="Completato">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    function getRecIcon(type) {
+        const icons = {
+            'STREAK_REMINDER': 'bi-fire',
+            'WEAKNESS_FOCUS': 'bi-bullseye',
+            'REVIEW_TOPIC': 'bi-arrow-repeat',
+            'RETRY_QUIZ': 'bi-patch-question',
+            'STUDY_FLASHCARDS': 'bi-stack',
+            'DAILY_GOAL': 'bi-calendar-check',
+            'NEW_TOPIC': 'bi-plus-circle'
+        };
+        return icons[type] || 'bi-lightbulb';
+    }
+
+    function getRecIconClass(type) {
+        const classes = {
+            'STREAK_REMINDER': 'streak',
+            'WEAKNESS_FOCUS': 'weakness',
+            'REVIEW_TOPIC': 'review',
+            'RETRY_QUIZ': 'quiz',
+            'STUDY_FLASHCARDS': 'flashcard',
+            'DAILY_GOAL': 'goal',
+            'NEW_TOPIC': 'new'
+        };
+        return classes[type] || 'goal';
+    }
+
+    async function dismissRecommendation(id) {
+        // Animazione fade out
+        const item = document.getElementById(`rec-${id}`);
+        if (item) {
+            item.style.transition = 'all 0.3s ease';
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(20px)';
+        }
+
+        try {
+            await apiFetch(`/recommendations/${id}/dismiss`, { method: 'POST' });
+
+            setTimeout(() => {
+                loadRecommendations();
+            }, 300);
+        } catch (e) {
+            if (item) {
+                item.style.opacity = '1';
+                item.style.transform = 'translateX(0)';
+            }
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ==================== BADGES ====================
+    async function loadBadges() {
+        try {
+            const response = await apiFetch('/gamification/badges');
+            if (response.ok) {
+                allBadges = await response.json();
+                renderBadges();
+                const unlocked = allBadges.filter(b => b.unlocked).length;
+                document.getElementById('unlockedCount').textContent = unlocked;
+                document.getElementById('totalCount').textContent = allBadges.length;
+            }
+        } catch (error) {
+            console.error('Errore caricamento badge:', error);
+            document.getElementById('badgesContainer').innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted);">
+                    <i class="bi bi-award" style="font-size: 2.5rem; opacity: 0.4; display: block; margin-bottom: 0.5rem;"></i>
+                    <p>Completa attivita per sbloccare badge!</p>
+                </div>
+            `;
+        }
+    }
+
+    function renderBadges() {
+        const container = document.getElementById('badgesContainer');
+
+        if (allBadges.length === 0) {
+            container.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted);">
+                    <i class="bi bi-award" style="font-size: 2.5rem; opacity: 0.4; display: block; margin-bottom: 0.5rem;"></i>
+                    <p>Nessun badge disponibile</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Ordina: prima sbloccati, poi per progresso
+        const sorted = [...allBadges].sort((a, b) => {
+            if (a.unlocked && !b.unlocked) return -1;
+            if (!a.unlocked && b.unlocked) return 1;
+            return (b.progress || 0) - (a.progress || 0);
+        });
+
+        container.innerHTML = sorted.map(badge => `
+            <div class="badge-card ${badge.unlocked ? 'unlocked' : 'locked'}">
+                <div class="badge-icon-container" style="background: ${badge.unlocked ? badge.color || '#6366F1' : 'var(--dark-border)'}">
+                    ${badge.unlocked ? `<i class="bi ${badge.icon || 'bi-award'}"></i>` : '<i class="bi bi-lock"></i>'}
+                </div>
+                <div class="badge-name">${escapeHtml(badge.name)}</div>
+                <div class="badge-description">${escapeHtml(badge.description)}</div>
+                ${!badge.unlocked ? `
+                    <div class="badge-progress">
+                        <div class="badge-progress-bar">
+                            <div class="badge-progress-fill" style="width: ${badge.progress || 0}%"></div>
+                        </div>
+                        <div class="badge-progress-text">${Math.round(badge.progress || 0)}%</div>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+</script>
+</body>
+</html>
